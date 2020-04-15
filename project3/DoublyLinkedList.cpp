@@ -6,6 +6,8 @@ Dr. Wole
 This program is the implementation file of a doubly-linked list. 
 */
 
+#ifndef DOUBLY_LINKED_IMPLEMENTATION
+#define DOUBLY_LINKED_IMPLEMENTATION
 #include "DoublyLinkedList.hpp"
 
 //********************************Default Constructor***********************************************************//
@@ -15,11 +17,23 @@ DoublyLinkedList<ItemType>::DoublyLinkedList() : headPtr(nullptr), itemCount(0){
                                                                                     //Initializer list to set headPtr to null and itemCount to 0
 
 //********************************Copy Constructor*************************************************************//
+//TESTED
 template<class ItemType>
-DoublyLinkedList<ItemType>::DoublyLinkedList(DoublyLinkedList<ItemType> &copyList)  :
-headPtr(copyList.headPtr), itemCount(copyList.itemCount){}          //end Copy Construcor
-                                                                  //Initializer list to set headPtr to headPtr of copyList
-                                                                //and itemCount to itemCount of copy list. 
+DoublyLinkedList<ItemType>::DoublyLinkedList(DoublyLinkedList<ItemType> &copyList){
+    DoubleNode<ItemType>* endNode = copyList.getHeadPtr(); //headptr of list to be copied. Will be inserted at position one of list
+    // headPtr = endNode;
+    // endNode = endNode -> getNext();
+    // DoubleNode<ItemType>* thisNode = headPtr;
+    int counter = 1;    //keeps track of position in list
+    while(counter <= copyList.getSize()){
+        insert(endNode->getItem(), counter);    //call insert method to insert items from copylist into this list
+        endNode = endNode -> getNext();
+        counter++;
+    }
+    itemCount = copyList.getSize(); //sets this itemCount to the itemCount of the copyList
+
+}
+
 
 //********************************Destructor********************************************************************//
 template<class ItemType>
@@ -30,6 +44,7 @@ DoublyLinkedList<ItemType>::~DoublyLinkedList() {
 
 //********************************insert Method********************************************************************//
 //This method will insert a node with an arbritrary data item and set it at a node in a given position of the list//
+//**************Position defined @param and @return true if node is successfully inserted************************//
 //TESTED!!! FINALLY WORKS :-]
 template<class ItemType>
 bool DoublyLinkedList<ItemType>::insert(const ItemType& item, const int& position){
@@ -42,28 +57,24 @@ bool DoublyLinkedList<ItemType>::insert(const ItemType& item, const int& positio
         if(position == 1 && isEmpty()) {    
             headPtr = newDoubleNode;           //Changes headPtr to the DoubleNode on heap
             //delete newDoubleNode;          //Delete DoubleNode on heap to prevent memory leak
-            itemCount++;              //item is added so must increment
-            return true;   
+         
         }//end if
 
         //Inserting at front of list, when the list already contains elements
-        if(position == 1){       
+        else if(position == 1){       
             newDoubleNode -> setNext(headPtr);      //sets the next element in list as the head pointer. This makes this node now the first in the list
-            headPtr = newDoubleNode;
-            itemCount++;
-            return true;
+            headPtr -> setPrev(newDoubleNode);      //sets prev of old headPtr to the new headptr
+            headPtr = newDoubleNode;        //new headPtr is the new double node
         }
 
          //Inserting the node at the end of the list. Similar to "add" method from last project
-        if(position == itemCount + 1){  
+        else if(position == itemCount + 1){  
             DoubleNode<ItemType>* endNode = headPtr;
             while(endNode -> getNext() != nullptr){
                 endNode = endNode -> getNext();     //traverse to the last node of the list
             }
             endNode -> setNext(newDoubleNode);                  //at the end of the list now, sets the next node to the new NOde
-            endNode -> getNext() -> setPrev(endNode);         //sets previous of the newNode to the old last node. 
-            itemCount++;                                    //item added, item count incremented
-            return true;
+            endNode -> getNext() -> setPrev(endNode);         //sets previous of the newNode to the old last node.
         }
 
         //case for inserting in between two nodes
@@ -81,16 +92,18 @@ bool DoublyLinkedList<ItemType>::insert(const ItemType& item, const int& positio
         and prev of the newNode must point and node1 and next must point at node2
         */
 
-        DoubleNode<ItemType>* prevNode = headPtr;
+       else{
+            DoubleNode<ItemType>* prevNode = headPtr;
 
-        for (int i = 1; i < position-1 ; i++){
-            prevNode = prevNode -> getNext();    //Traverse to correct node
-        }   //end for
+            for (int i = 1; i < position-1 ; i++){
+                prevNode = prevNode -> getNext();    //Traverse to correct node
+            }   //end for
 
-        newDoubleNode -> setNext(prevNode -> getNext());            //Takes              
-        prevNode -> setNext(newDoubleNode);
-        newDoubleNode -> setPrev(prevNode);
-        newDoubleNode -> getNext() -> setPrev(newDoubleNode);
+            newDoubleNode -> setNext(prevNode -> getNext());            //Takes              
+            prevNode -> setNext(newDoubleNode);
+            newDoubleNode -> setPrev(prevNode);
+            newDoubleNode -> getNext() -> setPrev(newDoubleNode);
+       }    
         itemCount++;
         return true;
        
@@ -100,15 +113,18 @@ bool DoublyLinkedList<ItemType>::insert(const ItemType& item, const int& positio
 }   //end insert
 
 //********************************Remove Method********************************************************************//
+//*******This method removes the node at at position defined @param. @return true when node removed***************//
+//TESTED
 template<class ItemType>
 bool DoublyLinkedList<ItemType>::remove(const int& position){
     if(position < 1 || position > itemCount || isEmpty()) return false;
 
     //Case of removing the headPtr 
     if(position == 1 ){
-       headPtr = headPtr -> getNext();          //changes headPtr to next node in the list
-       delete headPtr -> getPrev();           //delete the previous node
-       itemCount--;                         //item removed so itemCount decremented
+        headPtr = headPtr -> getNext();          //changes headPtr to next node in the list
+        delete headPtr -> getPrev();
+        // itemCount--;                         //item removed so itemCount decremented
+        // return true;
     }//end if
     
     //case of removing the last node
@@ -118,18 +134,38 @@ bool DoublyLinkedList<ItemType>::remove(const int& position){
         while(endNode -> getNext() != nullptr){
             endNode = endNode -> getNext();         //Traverse to the end of the list
         }//end while
-        endNode -> getPrev() -> setNext(nullptr);       //new last node. Sets the next pointer of the second to last node to null ptr
-        delete endNode;                                 //Deletes the last node of the list
-        itemCount--;                                    //Item removed 
+        endNode -> getPrev() -> setNext(nullptr);           //new last node. Sets the next pointer of the second to last node to null ptr
+        delete endNode;                                   //Deletes the last node of the list
+        // itemCount--;                                    //Item removed so itemCount decremented
+        // return true;
     }//end if
 
-            /*
+    //case of removing a node between two nodes
+    /*
 
                                node1             node2                node3
               nullptr <-[prev|data|next]<==>[prev|data|next]<==>[prev|data|next] -> nullPtr
                             (headPtr)
-        */
-     DoubleNode<ItemType>* nextNode = headPtr;
+
+        removing node2. first traverse to the correct node. next of node1 needs to point to node3 and prev of node3 now 
+        needs to point at node 1.
+        
+    */
+    else{
+        int counter = 1;             //counter to keep track of position while traversing the list
+        DoubleNode<ItemType>* delNode = headPtr;       //Node to be deleted
+
+        while(counter < position){
+            delNode = delNode -> getNext();     //Traverse to node at position
+            counter++;
+        }//end while
+
+        delNode -> getPrev() -> setNext(delNode ->getNext());      //Goes to the previous node at the position. Sets the nextptr of this node to the node after the node to be deleted.
+        delNode -> getNext() -> setPrev(delNode->getPrev());     //goes to the next node at the position. Sets the previous node of this node to point at the node before the node to be deleted.
+        delete delNode;                                        //deletes the node at the position now to clear memory
+    }
+    itemCount--;                                         //item deleted
+    return true;
 }
 
 //********************************getSize Method********************************************************************//
@@ -138,7 +174,6 @@ bool DoublyLinkedList<ItemType>::remove(const int& position){
 template<class ItemType>
 int DoublyLinkedList<ItemType>::getSize() const{
     return itemCount;
-    
 }
 
 //********************************getHeadPtr Method********************************************************************//
@@ -169,6 +204,7 @@ DoubleNode<ItemType>* DoublyLinkedList<ItemType>::getAtPos(const int& pos) const
 }
 
 //********************************isEmpty Method********************************************************************//
+//*************@return true if the list is empty. list is empty when the item count is 0***************************//
 //TESTED
 template<class ItemType>
 bool DoublyLinkedList<ItemType>::isEmpty() const{
@@ -177,8 +213,23 @@ bool DoublyLinkedList<ItemType>::isEmpty() const{
 }
 
 //********************************clear Method********************************************************************//
+//***************This method clear the list and frees all memory allocated***************************************//
+//TESTED
 template<class ItemType>
 void DoublyLinkedList<ItemType>::clear(){
+    DoubleNode<ItemType>* deleteNode = headPtr;
+    DoubleNode<ItemType>* nextNode;                                 //This will be a place holder while the node is being deleted
+                                    //= deleteNode -> getNext();
+
+    while(deleteNode != nullptr){
+        nextNode = deleteNode -> getNext();     //gets the next node
+        delete deleteNode;                    //deletes the initial node
+        deleteNode = nextNode;              //now set initial node to next node. Loop will continue to end of the list
+    }//end while
+
+    headPtr = nullptr;
+    itemCount = 0;
+    
 }
 
 //********************************display Method********************************************************************//
@@ -194,8 +245,10 @@ void DoublyLinkedList<ItemType>::display() const{
 
     // while(endNode -> getNext() != nullptr){
         for(int i = 0; i < itemCount; i++){
-            std::cout << endNode -> getItem() << std::endl;   //prints out the item contained in Node 
+            std::cout << endNode -> getItem();   //prints out the item contained in Node 
             endNode =  endNode -> getNext();                //traverses to next node after
+            if(endNode != nullptr) std::cout << " ";
+            else std::cout << "\n";                 //prints space inbetween each item and new line at the end of the list
         }  
     
 
@@ -216,14 +269,63 @@ void DoublyLinkedList<ItemType>::displayBackwards() const{
     }
 
    while(endNode != headPtr){ //Now traversing in reverse order to print in reverse order.
-        std::cout << endNode -> getItem() << std:: endl;      //prints item from last node first
+        std::cout << endNode -> getItem() << " ";      //prints item from last node first
         endNode = endNode -> getPrev();  //travesrse to previous node until the start of the list
     }
 
-    std::cout << endNode -> getItem() << std::endl;     //cout item at headPtr now
+    std::cout << endNode -> getItem() << "\n";     //cout item at headPtr now
    
 }
 
 //********************************interleave Method********************************************************************//
+//****This method takes the list @param, and puts the nodes of that list at the even positions of the currentlist*****//
 template<class ItemType>
-DoublyLinkedList<ItemType> DoublyLinkedList<ItemType>::interleave(const DoublyLinkedList<ItemType>& a_list){}
+DoublyLinkedList<ItemType> DoublyLinkedList<ItemType>::interleave(const DoublyLinkedList<ItemType>& a_list){
+    
+
+    DoublyLinkedList<ItemType>* newList = new DoublyLinkedList<ItemType>; //list to be returned
+    int counter = 1;                    //keep track of position in the new list that will be retured
+    DoubleNode<ItemType>* oddNode = headPtr;                  //node to be inserted at odd positions of list
+    DoubleNode<ItemType>* evenNode = a_list.getHeadPtr();    
+    DoubleNode<ItemType>* holderNode, holderNode2;
+    while (oddNode != nullptr && evenNode != nullptr) {
+// if first list is not done adding add a node from it
+        if (oddNode != nullptr) {
+            newList -> insert(oddNode -> getItem(), counter);
+            oddNode = oddNode -> getNext();
+            counter++;
+        }
+        // if second list is not done adding add a node from it
+        if (evenNode != nullptr) {
+            newList -> insert(evenNode -> getItem(), counter);
+            evenNode = evenNode -> getNext();
+            counter++;
+        }
+    }
+
+    return *newList;
+    /*
+
+                               node1             node3                node5 
+              nullptr <-[prev|data|next]<==>[prev|data|next]<==>[prev|data|next] -> nullPtr
+                            (headPtr)
+
+                               node2             node4                node6 
+     a_list    nullptr <-[prev|data|next]<==>[prev|data|next]<==>[prev|data|next] -> nullPtr
+                            (headPtr)
+
+    set next of headptr to node to. set 
+        
+    */
+    // DoubleNode<ItemType>* aListHead = a_list.getHeadPtr();
+    // oddNode = oddNode -> getNext();
+    // while(oddNode != nullptr && evenNode != nullptr){
+    //     aListHead -> setNext(evenNode);
+
+    //     if(aListHead -> getPrev() != nullptr)
+    //         aListHead -> setPrev(oddNode); //end if   
+    // }
+    // return newList;
+}
+
+#endif

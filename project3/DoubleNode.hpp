@@ -7,8 +7,8 @@ Header file of node object in the doubly-linked list. Should have two pointers, 
 and one to the next node and a data member.
 */
 
-#ifndef DOUBLE_NODE
-#define DOUBLE_NODE
+#ifndef DOUBLE_NODE_HEADER
+#define DOUBLE_NODE_HEADER
 
 template <class ItemType>
 class DoubleNode{

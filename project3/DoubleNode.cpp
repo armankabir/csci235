@@ -5,6 +5,10 @@ Dr. Wole
 
 This program implements the members of a node of a doubly-linked list.
 */
+
+#ifndef DOUBLE_NODE_IMPLEMENTATION
+#define DOUBLE_NODE_IMPLEMENTATION
+
 #include "DoubleNode.hpp"
 
 
@@ -48,3 +52,5 @@ template<class ItemType>
 DoubleNode<ItemType>* DoubleNode<ItemType>::getPrev(){
     return prevNode;
 }
+
+#endif

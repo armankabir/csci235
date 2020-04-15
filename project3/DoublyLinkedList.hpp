@@ -5,8 +5,9 @@ Dr. Wole
 
 This program is the implementation file of a doubly-linked list. 
 */
-#ifndef DOUBLY_LINKED_LIST_
-#define DOUBLY_LINKED_LIST_
+#ifndef DOUBLY_LINKED_LIST
+#define DOUBLY_LINKED_LIST
+
 #include "DoubleNode.hpp"
 #include <iostream>
 template<class ItemType>
